@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Milk Tracker Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+
+  <video id="bg-video" src="background.mp4" loop muted playsinline></video>
+
+  <div id="start-screen" class="start-screen">
+    <h1 class="glitch-text">SELECT YOUR GOAL</h1>
+    <div class="goal-grid">
+      <div class="goal-card" data-hero="arnold" data-image="arnold.jpg" style="background-image: url('arnold.jpg');">
+        <span>ARNOLD</span>
+      </div>
+      <div class="goal-card" data-hero="bruce" data-image="bruce.jpg" style="background-image: url('bruce.jpg');">
+        <span>BRUCE LEE</span>
+      </div>
+      <div class="goal-card" data-hero="cbum" data-image="cbum.png" style="background-image: url('cbum.png');">
+        <span>CBUM</span>
+      </div>
+      <div class="goal-card" data-hero="david" data-image="david.jpg" style="background-image: url('david.jpg');">
+        <span>DAVID LAID</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene" style="display: none;">
+    <div class="board">
+      <h1>🥛 Milk Tracker</h1>
+      <h2 id="month-name"></h2>
+      
+      <div class="controls">
+        <label>Price per unit (₹): 
+          <input type="number" id="price" value="25" min="0">
+        </label>
+      </div>
+
+      <div class="calendar" id="calendar"></div>
+
+      <div id="day-bar" class="day-bar" style="display: none;">
+        <h3 id="selected-day-title">Day X</h3>
+        <div class="bar-controls">
+          <label>Qty:
+            <input type="number" id="day-qty" step="0.5" value="1" min="0">
+          </label>
+          <label>Note:
+            <input type="text" id="day-note" placeholder="E.g., extra milk...">
+          </label>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="stat-box">
+          <p>Days Received</p>
+          <h2 id="days-count">0</h2>
+        </div>
+        <div class="stat-box highlight">
+          <p>Total Bill</p>
+          <h2>₹<span id="total">0</span></h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-arnold" src="arnold.mp3"></audio>
+  <audio id="audio-bruce" src="bruce.mp3"></audio>
+  <audio id="audio-cbum" src="cbum.mp3"></audio>
+  <audio id="audio-david" src="david.mp3"></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>

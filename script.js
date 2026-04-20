@@ -7,22 +7,11 @@ const bgVideo = document.getElementById('bg-video');
 goalCards.forEach(card => {
   card.addEventListener('click', () => {
     const hero = card.getAttribute('data-hero');
-
-    // 1. Play the universal background animation video
     bgVideo.style.display = 'block';
     bgVideo.play();
-
-    // 2. Play the specific hero's MP3 audio
     const audio = document.getElementById(`audio-${hero}`);
-    if (audio) {
-      audio.currentTime = 0; 
-      audio.play();
-    }
-
-    // 3. Clear the dark image background if it was there
+    if (audio) { audio.currentTime = 0; audio.play(); }
     document.body.style.backgroundImage = 'none';
-
-    // 4. Hide start screen and show tracker
     startScreen.style.display = 'none';
     trackerScene.style.display = 'block';
   });
@@ -35,60 +24,91 @@ const countEl = document.getElementById('days-count');
 const priceInput = document.getElementById('price');
 const monthNameEl = document.getElementById('month-name');
 
+// NEW: Navigation Buttons
+const prevMonthBtn = document.getElementById('prev-month');
+const nextMonthBtn = document.getElementById('next-month');
+
 const dayBar = document.getElementById('day-bar');
 const selectedDayTitle = document.getElementById('selected-day-title');
 const dayQtyInput = document.getElementById('day-qty');
 const dayNoteInput = document.getElementById('day-note');
 
-const today = new Date();
-const currentMonth = today.getMonth(); 
-const currentYear = today.getFullYear();
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-monthNameEl.innerText = `${monthNames[currentMonth]} ${currentYear}`;
-const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-const storageKey = `milk_v2_${currentMonth}_${currentYear}`;
-let dayData = JSON.parse(localStorage.getItem(storageKey)) || {};
+// NEW: Mutable Date Variables
+let currentDate = new Date();
+let displayMonth = currentDate.getMonth(); 
+let displayYear = currentDate.getFullYear();
+let storageKey = "";
+let dayData = {};
 let selectedDay = null;
 
-for (let i = 1; i <= daysInMonth; i++) {
-  const dayBtn = document.createElement('div');
-  dayBtn.classList.add('day');
-  dayBtn.innerText = i;
+// NEW: Master Function to Render the Calendar
+function renderCalendar() {
+  monthNameEl.innerText = `${monthNames[displayMonth]} ${displayYear}`;
   
-  if (dayData[i]) {
-    dayBtn.classList.add('active');
-  }
+  // Create a unique database key for whichever month we are looking at
+  storageKey = `milk_v2_${displayMonth}_${displayYear}`;
+  dayData = JSON.parse(localStorage.getItem(storageKey)) || {};
   
-  dayBtn.addEventListener('click', () => {
-    document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+  selectedDay = null;
+  dayBar.style.display = 'none'; // Hide the editor when switching months
+  calendar.innerHTML = ''; // Wipe the old calendar squares
 
-    if (!dayBtn.classList.contains('active')) {
+  const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dayBtn = document.createElement('div');
+    dayBtn.classList.add('day');
+    dayBtn.innerText = i;
+    
+    if (dayData[i]) {
       dayBtn.classList.add('active');
-      dayBtn.classList.add('selected');
-      dayData[i] = { qty: 1, note: "" };
-      selectedDay = i;
-      showDayBar(i);
-    } 
-    else if (selectedDay !== i) {
-      dayBtn.classList.add('selected');
-      selectedDay = i;
-      showDayBar(i);
-    }
-    else {
-      dayBtn.classList.remove('active');
-      delete dayData[i];
-      selectedDay = null;
-      dayBar.style.display = 'none';
     }
     
-    saveData();
-    calculateTotal();
-  });
-  
-  calendar.appendChild(dayBtn);
+    dayBtn.addEventListener('click', () => {
+      document.querySelectorAll('.day').forEach(d => d.classList.remove('selected'));
+
+      if (!dayBtn.classList.contains('active')) {
+        dayBtn.classList.add('active');
+        dayBtn.classList.add('selected');
+        dayData[i] = { qty: 1, note: "" };
+        selectedDay = i;
+        showDayBar(i);
+      } 
+      else if (selectedDay !== i) {
+        dayBtn.classList.add('selected');
+        selectedDay = i;
+        showDayBar(i);
+      }
+      else {
+        dayBtn.classList.remove('active');
+        delete dayData[i];
+        selectedDay = null;
+        dayBar.style.display = 'none';
+      }
+      
+      saveData();
+      calculateTotal();
+    });
+    
+    calendar.appendChild(dayBtn);
+  }
+  calculateTotal();
 }
+
+// NEW: Button Click Events
+prevMonthBtn.addEventListener('click', () => {
+  displayMonth--;
+  if (displayMonth < 0) { displayMonth = 11; displayYear--; }
+  renderCalendar();
+});
+
+nextMonthBtn.addEventListener('click', () => {
+  displayMonth++;
+  if (displayMonth > 11) { displayMonth = 0; displayYear++; }
+  renderCalendar();
+});
 
 dayQtyInput.addEventListener('input', () => {
   if (selectedDay) {
@@ -119,28 +139,25 @@ function saveData() {
 function calculateTotal() {
   let totalQty = 0;
   let activeDaysCount = 0;
-
   for (const day in dayData) {
     totalQty += dayData[day].qty;
     activeDaysCount++;
   }
-
   const price = parseFloat(priceInput.value) || 0;
   countEl.innerText = activeDaysCount;
   totalEl.innerText = totalQty * price;
 }
 
 const savedPrice = localStorage.getItem('milk_price');
-if (savedPrice !== null) {
-  priceInput.value = savedPrice; 
-}
-
-calculateTotal();
+if (savedPrice !== null) { priceInput.value = savedPrice; }
 
 priceInput.addEventListener('input', () => {
   localStorage.setItem('milk_price', priceInput.value);
   calculateTotal();
 });
+
+// INITIAL LOAD
+renderCalendar();
 
 // --- SERVICE WORKER REGISTRATION ---
 if ('serviceWorker' in navigator) {
@@ -148,5 +165,4 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
       .catch(error => console.log('Service Worker failed:', error));
   });
-
 }
